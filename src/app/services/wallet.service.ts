@@ -2,9 +2,11 @@ import {
   BehaviorSubject,
   Observable,
   catchError,
+  defer,
   from,
   of,
   switchMap,
+  tap,
   throwError,
 } from 'rxjs';
 import { Injectable } from '@angular/core';
@@ -19,12 +21,17 @@ export class WalletService {
   ethereum: any;
   provider: ethers.providers.Web3Provider;
 
+  walletsIDs$ = new BehaviorSubject<string[]>([]);
+  currentWalletIndex: number;
+  currentBalance$ = new BehaviorSubject<IBalance | undefined>(undefined);
+
   constructor() {
     this.ethereum = window.ethereum;
     if (!this.ethereum) {
       console.error('Metamask not found. Please install Metamask.');
     }
     this.provider = new ethers.providers.Web3Provider(this.ethereum);
+    this.currentWalletIndex = this.loadCurrentAccount();
   }
 
   async getBalances(address: any): Promise<IBalance> {
@@ -35,7 +42,6 @@ export class WalletService {
     const ethBalance = utils.formatEther(
       await this.provider.getBalance(address)
     );
-    console.log(address, ethBalance);
 
     const contract = new ethers.Contract(
       '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -48,6 +54,7 @@ export class WalletService {
       ethBalance,
       wethBalance: ethers.utils.formatUnits(wethBalance, 18),
     };
+    this.currentBalance$.next(res);
     console.log(address, res);
     return res;
   }
@@ -59,6 +66,8 @@ export class WalletService {
 
     return requestAccounts$.pipe(
       switchMap((accounts: any) => {
+        this.walletsIDs$.next(accounts);
+        this.getBalances(accounts[this.currentWalletIndex]);
         return of(accounts);
       }),
       catchError((error: any) => this.handleError(error))
@@ -87,17 +96,38 @@ export class WalletService {
     }
   }
 
-  async checkWalletConnected(): Promise<any> {
-    try {
-      if (!this.ethereum) {
-        console.error('Metamask not found. Please install Metamask.');
-        return [];
-      }
+  checkWalletConnected(): Observable<string[]> {
+    return defer(() => this.getAccounts()).pipe(
+      tap((accounts) => this.walletsIDs$.next(accounts)),
+      catchError((error) => {
+        console.error(error);
+        return of([]);
+      })
+    );
+  }
 
-      const accounts = await this.ethereum.request({ method: 'eth_accounts' });
-      return accounts;
-    } catch (e) {
-      throw new Error('Failed to check wallet connection.');
+  private async getAccounts(): Promise<string[]> {
+    if (!this.ethereum) {
+      console.error('Metamask not found. Please install Metamask.');
+      return [];
     }
+
+    const accounts = await this.ethereum.request({ method: 'eth_accounts' });
+    return accounts;
+  }
+
+  getSelectedWalletAddress(index: number): string {
+    const walletIDs = this.walletsIDs$.value;
+    return walletIDs[index];
+  }
+
+  setCurrentWalletIndex(index: number): void {
+    this.currentWalletIndex = index;
+    localStorage.setItem('currentAccount', `${index}`);
+  }
+
+  private loadCurrentAccount(): number {
+    const account = localStorage.getItem('currentAccount');
+    return account !== null && account !== undefined ? +account : 0;
   }
 }

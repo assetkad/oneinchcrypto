@@ -1,7 +1,7 @@
 <div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r">
-  <app-select-account *ngIf="(walletsIDs$ | async) as walletsIDs" [options]="walletsIDs" [selectedValue]="currentWalletIndex" (onSelectionChange)="onAccountChange($event)"></app-select-account>
+  <app-select-account *ngIf="walletsIDs$ | async as walletsIDs" [options]="walletsIDs" [selectedValue]="currentWalletIndex" (onSelectionChange)="onAccountChange($event)"></app-select-account>
 
-  <app-balance-display *ngIf="(currentBalance$ | async) as currentBalance" [balances]="currentBalance"></app-balance-display>
+  <app-balance-display *ngIf="currentBalance$ | async as currentBalance" [balances]="currentBalance"></app-balance-display>
 
   <div class="mt-1 text-4xl sm:text-7xl font-extrabold tracking-tight leading-tight text-center text-white">
     Explore the Web3 Universe
@@ -11,7 +11,7 @@
     <app-wallet [currentAccount]="currentWalletIndex" [walletsIDs]="walletsIDs"></app-wallet>
   </ng-container>
 
-  <ng-container *ngIf="!walletsIDs$.value.length">
+  <ng-container *ngIf="!(walletsIDs$ | async)?.length">
     <div class="flex flex-col p-3">
       <button class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()">
         Connect your wallet

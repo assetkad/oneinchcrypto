@@ -10,8 +10,4 @@ export class BalanceDisplayComponent {
     ethBalance: string;
     wethBalance: string;
   };
-
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
-  }
 }
