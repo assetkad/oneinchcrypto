@@ -1,3 +1,20 @@
-<button (click)="connectToWallet()">Connect wallet</button>
-<h3 *ngIf="walletID">{{walletID}}</h3>
-<router-outlet></router-outlet>
+<div class="flex flex-col justify-center items-center h-screen gradient-bg">
+  <div class="flex flex-col p-3" *ngIf="walletIDs$ | async as walletIDs">
+    <select [(ngModel)]="currentAccount" (change)="onAccountChange()">
+      <option *ngFor="let wallet of walletIDs$ | async; let i = index" [value]="i">{{ wallet }}</option>
+    </select>
+  </div>
+
+  <div class="mt-1 text-4xl sm:text-7xl font-extrabold tracking-tight leading-tight text-center text-white">
+    Explore the Web3 Universe
+  </div>
+  <h2 *ngIf="walletIDs$ | async as walletIDs" class="text-lg text-white">
+    Connected Wallet Address: {{ walletIDs[currentAccount] }}
+  </h2>
+
+  <div class="flex flex-col p-3">
+    <button [disabled]="isConnecting" class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()" >
+      {{ isConnecting ? 'Connecting...' : 'Connect your wallet' }}
+    </button>
+  </div>
+</div>
