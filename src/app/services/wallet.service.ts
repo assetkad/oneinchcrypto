@@ -1,62 +1,51 @@
-import {
-  EMPTY,
-  Observable,
-  catchError,
-  from,
-  of,
-  switchMap,
-  throwError,
-} from 'rxjs';
+import { Observable, catchError, from, of, switchMap, throwError } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { ethers, utils } from 'ethers';
 import { abi } from '../core/contract/contract-abi';
-import { Web3Provider } from '@ethersproject/providers';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WalletService {
-  public ethereum;
-  contractProps: any = {};
-  public currentAccount = 0;
-  provider!: Web3Provider;
+  ethereum: any;
+  provider: ethers.providers.Web3Provider;
 
   constructor() {
-    const { ethereum } = window;
-    this.ethereum = ethereum;
-    if (!ethereum) {
+    this.ethereum = window.ethereum;
+    if (!this.ethereum) {
       console.error('Metamask not found. Please install Metamask.');
     }
-    this.provider = new ethers.providers.Web3Provider(ethereum);
+    this.provider = new ethers.providers.Web3Provider(this.ethereum);
   }
 
-  async getEthBalance(address: any): Promise<any> {
+  async getBalances(address: any): Promise<any> {
     if (!this.provider) {
       throw new Error('Wallet not connected.');
     }
-    const balance = await this.provider.getBalance(address);
-    console.log({ ethBalance: utils.formatEther(balance) });
-    return { ethBalance: utils.formatEther(balance) };
-  }
 
-  async getWethBalance(address: any): Promise<any> {
-    if (!this.provider) {
-      throw new Error('Wallet not connected.');
-    }
+    const ethBalance = utils.formatEther(
+      await this.provider.getBalance(address)
+    );
+    console.log(address, ethBalance);
+
     const contract = new ethers.Contract(
       '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       abi,
       this.provider
     );
-    const balance = await contract['balanceOf'](address);
-    const res = { wethBalance: ethers.utils.formatUnits(balance, 18) }; // убрать
-    console.log(res);
+
+    const wethBalance = await contract['balanceOf'](address);
+    const res = {
+      ethBalance,
+      wethBalance: ethers.utils.formatUnits(wethBalance, 18),
+    };
+    console.log(address, res);
     return res;
   }
 
-  public connectWallet = (): Observable<any> => {
+  connectWallet(): Observable<any> {
     const requestAccounts$ = from(
-      this.ethereum?.request({ method: 'eth_requestAccounts' })
+      this.ethereum.request({ method: 'eth_requestAccounts' })
     );
 
     return requestAccounts$.pipe(
@@ -65,7 +54,7 @@ export class WalletService {
       }),
       catchError((error: any) => this.handleError(error))
     );
-  };
+  }
 
   private handleError(error: any): Observable<any> {
     console.error(error);
@@ -74,7 +63,7 @@ export class WalletService {
       error.message === 'Already processing eth_requestAccounts. Please wait.'
     ) {
       const requestPermissions$ = from(
-        window.ethereum.request({
+        this.ethereum.request({
           method: 'wallet_requestPermissions',
           params: [{ eth_accounts: {} }],
         })
@@ -89,7 +78,7 @@ export class WalletService {
     }
   }
 
-  public checkWalletConnected = async () => {
+  async checkWalletConnected(): Promise<any> {
     try {
       if (!this.ethereum) {
         console.error('Metamask not found. Please install Metamask.');
@@ -101,5 +90,5 @@ export class WalletService {
     } catch (e) {
       throw new Error('Failed to check wallet connection.');
     }
-  };
+  }
 }

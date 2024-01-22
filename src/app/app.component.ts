@@ -1,6 +1,13 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+} from '@angular/core';
 import { WalletService } from './services/wallet.service';
-import { Observable, Subject, take } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, take } from 'rxjs';
+import { IBalance } from './entities/IBalance';
 
 @Component({
   selector: 'app-root',
@@ -8,47 +15,45 @@ import { Observable, Subject, take } from 'rxjs';
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = '1inch crypto';
 
-  public walletIDs$ = new Subject<String[]>();
+  walletIDs$ = new BehaviorSubject<string[]>([]);
+  currentAccount: number;
+  currentBalance$ = new BehaviorSubject<IBalance | undefined>(undefined);
+  isConnecting = false;
 
-  public currentAccount = 0;
-
-  public isConnecting = false;
-
-  constructor(public walletService: WalletService) {}
-
-  ngOnInit(): void {
-    this.checkWalletConnected();
-    this.loadCurrentAccount();
+  constructor(public walletService: WalletService) {
+    this.currentAccount = localStorage.getItem('currentAccount')
+      ? +localStorage.getItem('currentAccount')!
+      : 0;
   }
 
-  private saveCurrentAccount() {
+  ngOnInit(): void {
+    this.loadCurrentAccount();
+    this.checkWalletConnected();
+  }
+
+  onAccountChange(): void {
+    this.saveCurrentAccount();
+    this.getBalances();
+  }
+
+  private saveCurrentAccount(): void {
     localStorage.setItem('currentAccount', `${this.currentAccount}`);
   }
 
-  private loadCurrentAccount() {
+  private loadCurrentAccount(): void {
     const account = localStorage.getItem('currentAccount');
     if (account !== null && account !== undefined) {
       this.currentAccount = +account;
     }
   }
 
-  onAccountChange() {
-    this.saveCurrentAccount();
-    this.walletIDs$.pipe(take(1)).subscribe((walletIDs) => {
-      console.log(walletIDs);
-      this.walletService.getEthBalance(walletIDs[this.currentAccount]);
-      this.walletService.getWethBalance(walletIDs[this.currentAccount]);
-    });
-  }
-
-  connectToWallet = () => {
+  connectToWallet(): void {
     this.isConnecting = true;
     this.walletService.connectWallet().subscribe({
       next: (res) => {
-        console.log(res);
         this.walletIDs$.next(res);
         this.isConnecting = false;
       },
@@ -61,19 +66,35 @@ export class AppComponent {
         this.checkWalletConnected();
       },
     });
-  };
+  }
 
-  checkWalletConnected = async () => {
-    try {
-      const accounts = await this.walletService.checkWalletConnected();
-      if (accounts.length > 0) {
-        console.log(accounts);
-        this.walletIDs$.next(accounts);
-        this.walletService.getEthBalance(accounts[this.currentAccount]);
-        this.walletService.getWethBalance(accounts[this.currentAccount]);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  getBalances() {
+    const selectedAddress = this.getSelectedAddress();
+    this.walletService
+      .getBalances(selectedAddress)
+      .then((balance) => this.currentBalance$.next(balance));
+  }
+
+  private getSelectedAddress(): string {
+    const walletIDs = this.walletIDs$.value;
+    return walletIDs[this.currentAccount];
+  }
+
+  checkWalletConnected(): void {
+    this.walletService
+      .checkWalletConnected()
+      .then((accounts) => {
+        if (accounts.length > 0) {
+          this.walletIDs$.next(accounts);
+          console.log(accounts);
+
+          if (this.currentAccount < accounts.length) {
+            this.getBalances();
+          } else {
+            console.error('Invalid currentAccount value');
+          }
+        }
+      })
+      .catch((e) => console.error(e));
+  }
 }

@@ -1,7 +1,18 @@
-.gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.bg-gradient-to-r {
+  background: linear-gradient(to right, #4e3ff7, #ff7c7c);
+  background-size: 100% 100%;
+  animation: pulseGradient 0.1s infinite alternate;
 }
 
-.bg-gradient-to-r {
-  background: linear-gradient(to right, #0000ff, #00ff00, #ff0000); // Adjust the gradient colors
+.select-box {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+}
+
+.select-box:hover {
+  border-color: #999;
 }

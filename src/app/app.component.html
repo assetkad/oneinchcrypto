@@ -1,20 +1,23 @@
-<div class="flex flex-col justify-center items-center h-screen gradient-bg">
-  <div class="flex flex-col p-3" *ngIf="walletIDs$ | async as walletIDs">
-    <select [(ngModel)]="currentAccount" (change)="onAccountChange()">
-      <option *ngFor="let wallet of walletIDs$ | async; let i = index" [value]="i">{{ wallet }}</option>
+<div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r">
+  <div class="flex flex-col p-3" *ngIf="(walletIDs$ | async) as walletIDs">
+    <select *ngIf="walletIDs.length" [(ngModel)]="currentAccount" (change)="onAccountChange()" class="select-box">
+      <option *ngFor="let wallet of walletIDs; let i = index" [value]="i">{{ wallet }}</option>
     </select>
   </div>
+
+  <app-balance-display *ngIf="(currentBalance$ | async) as currentBalance" [balances]="currentBalance"></app-balance-display>
 
   <div class="mt-1 text-4xl sm:text-7xl font-extrabold tracking-tight leading-tight text-center text-white">
     Explore the Web3 Universe
   </div>
-  <h2 *ngIf="walletIDs$ | async as walletIDs" class="text-lg text-white">
-    Connected Wallet Address: {{ walletIDs[currentAccount] }}
-  </h2>
 
-  <div class="flex flex-col p-3">
-    <button [disabled]="isConnecting" class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()" >
+  <ng-container *ngIf="(walletIDs$ | async) as walletIDs">
+    <h2 *ngIf="walletIDs.length" class="text-lg text-white">
+      Connected Wallet Address: {{ walletIDs[currentAccount] }}
+    </h2>
+
+    <button *ngIf="!walletIDs.length" [disabled]="isConnecting" class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()">
       {{ isConnecting ? 'Connecting...' : 'Connect your wallet' }}
     </button>
-  </div>
+  </ng-container>
 </div>
