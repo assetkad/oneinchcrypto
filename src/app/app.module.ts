@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
-import { BalanceDisplayComponent } from './balance-display/balance-display.component';
+import { SharedModule } from './shared/shared.module';
 
 declare global {
   interface Window {
@@ -13,8 +13,8 @@ declare global {
 }
 
 @NgModule({
-  declarations: [AppComponent, BalanceDisplayComponent],
-  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  declarations: [AppComponent],
+  imports: [BrowserModule, FormsModule, SharedModule, AppRoutingModule],
   providers: [],
   bootstrap: [AppComponent],
 })

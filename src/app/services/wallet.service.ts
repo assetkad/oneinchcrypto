@@ -1,7 +1,16 @@
-import { Observable, catchError, from, of, switchMap, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  from,
+  of,
+  switchMap,
+  throwError,
+} from 'rxjs';
 import { Injectable } from '@angular/core';
 import { ethers, utils } from 'ethers';
 import { abi } from '../core/contract/contract-abi';
+import { IBalance } from '../entities/IBalance';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +27,7 @@ export class WalletService {
     this.provider = new ethers.providers.Web3Provider(this.ethereum);
   }
 
-  async getBalances(address: any): Promise<any> {
+  async getBalances(address: any): Promise<IBalance> {
     if (!this.provider) {
       throw new Error('Wallet not connected.');
     }
@@ -43,7 +52,7 @@ export class WalletService {
     return res;
   }
 
-  connectWallet(): Observable<any> {
+  connectWallet(): Observable<string[]> {
     const requestAccounts$ = from(
       this.ethereum.request({ method: 'eth_requestAccounts' })
     );

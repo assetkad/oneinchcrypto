@@ -1,0 +1,3 @@
+<select *ngIf="options.length" [(ngModel)]="selectedValue" (change)="onSelectionChange.emit(selectedValue)">
+  <option *ngFor="let option of options; let i = index" [value]="i">{{ option }}</option>
+</select>

@@ -1,12 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { WalletService } from './services/wallet.service';
-import { BehaviorSubject, Observable, Subject, take } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { IBalance } from './entities/IBalance';
 
 @Component({
@@ -18,66 +12,58 @@ import { IBalance } from './entities/IBalance';
 export class AppComponent implements OnInit {
   title = '1inch crypto';
 
-  walletIDs$ = new BehaviorSubject<string[]>([]);
-  currentAccount: number;
+  walletsIDs$ = new BehaviorSubject<string[]>([]);
+  currentWalletIndex: number;
   currentBalance$ = new BehaviorSubject<IBalance | undefined>(undefined);
-  isConnecting = false;
 
   constructor(public walletService: WalletService) {
-    this.currentAccount = localStorage.getItem('currentAccount')
-      ? +localStorage.getItem('currentAccount')!
-      : 0;
+    this.currentWalletIndex = this.loadCurrentAccount();
   }
 
   ngOnInit(): void {
-    this.loadCurrentAccount();
     this.checkWalletConnected();
   }
 
-  onAccountChange(): void {
+  onAccountChange(selectedValue: number): void {
+    console.log(selectedValue);
+    this.currentWalletIndex = selectedValue;
     this.saveCurrentAccount();
     this.getBalances();
   }
 
   private saveCurrentAccount(): void {
-    localStorage.setItem('currentAccount', `${this.currentAccount}`);
+    localStorage.setItem('currentAccount', `${this.currentWalletIndex}`);
   }
 
-  private loadCurrentAccount(): void {
+  private loadCurrentAccount(): number {
     const account = localStorage.getItem('currentAccount');
-    if (account !== null && account !== undefined) {
-      this.currentAccount = +account;
-    }
+    return account !== null && account !== undefined ? +account : 0;
   }
 
   connectToWallet(): void {
-    this.isConnecting = true;
     this.walletService.connectWallet().subscribe({
       next: (res) => {
-        this.walletIDs$.next(res);
-        this.isConnecting = false;
+        this.walletsIDs$.next(res);
       },
       error: (error) => {
         console.error(error);
-        this.isConnecting = false;
       },
       complete: () => {
-        this.isConnecting = false;
         this.checkWalletConnected();
       },
     });
   }
 
-  getBalances() {
-    const selectedAddress = this.getSelectedAddress();
+  private getBalances() {
+    const selectedWalletAddress = this.getSelectedWalletAddress();
     this.walletService
-      .getBalances(selectedAddress)
+      .getBalances(selectedWalletAddress)
       .then((balance) => this.currentBalance$.next(balance));
   }
 
-  private getSelectedAddress(): string {
-    const walletIDs = this.walletIDs$.value;
-    return walletIDs[this.currentAccount];
+  private getSelectedWalletAddress(): string {
+    const walletIDs = this.walletsIDs$.value;
+    return walletIDs[this.currentWalletIndex];
   }
 
   checkWalletConnected(): void {
@@ -85,10 +71,10 @@ export class AppComponent implements OnInit {
       .checkWalletConnected()
       .then((accounts) => {
         if (accounts.length > 0) {
-          this.walletIDs$.next(accounts);
+          this.walletsIDs$.next(accounts);
           console.log(accounts);
 
-          if (this.currentAccount < accounts.length) {
+          if (this.currentWalletIndex < accounts.length) {
             this.getBalances();
           } else {
             console.error('Invalid currentAccount value');
