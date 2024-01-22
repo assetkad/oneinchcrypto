@@ -13,24 +13,34 @@ import { Injectable } from '@angular/core';
 import { ethers, utils } from 'ethers';
 import { abi } from '../core/contract/contract-abi';
 import { IBalance } from '../entities/IBalance';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WalletService {
   ethereum: any;
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.Web3Provider | undefined;
 
   walletsIDs$ = new BehaviorSubject<string[]>([]);
   currentWalletIndex: number;
   currentBalance$ = new BehaviorSubject<IBalance | undefined>(undefined);
 
-  constructor() {
+  constructor(public snackBar: MatSnackBar) {
     this.ethereum = window.ethereum;
     if (!this.ethereum) {
+      this.snackBar.open(
+        'Metamask not found. Please install Metamask.',
+        'Close',
+        {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        }
+      );
       console.error('Metamask not found. Please install Metamask.');
+    } else {
+      this.provider = new ethers.providers.Web3Provider(this.ethereum);
     }
-    this.provider = new ethers.providers.Web3Provider(this.ethereum);
     this.currentWalletIndex = this.loadCurrentAccount();
   }
 
@@ -76,6 +86,10 @@ export class WalletService {
 
   private handleError(error: any): Observable<any> {
     console.error(error);
+    this.snackBar.open(error.message, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+    });
 
     if (
       error.message === 'Already processing eth_requestAccounts. Please wait.'
@@ -108,6 +122,14 @@ export class WalletService {
 
   private async getAccounts(): Promise<string[]> {
     if (!this.ethereum) {
+      this.snackBar.open(
+        'Metamask not found. Please install Metamask.',
+        'Close',
+        {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        }
+      );
       console.error('Metamask not found. Please install Metamask.');
       return [];
     }
