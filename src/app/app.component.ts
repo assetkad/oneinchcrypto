@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { WalletService } from './services/wallet.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
 import { IBalance } from './entities/IBalance';
 
 @Component({
@@ -10,14 +10,15 @@ import { IBalance } from './entities/IBalance';
 })
 export class AppComponent implements OnInit {
   title = '1inch crypto';
+  private componentDestroyed$: Subject<void> = new Subject<void>();
 
   walletsIDs$!: Observable<string[]>;
-  currentWalletIndex!: number;
+  currentWalletIndex$!: Observable<number>;
   currentBalance$!: Observable<IBalance | undefined>;
 
   constructor(public walletService: WalletService) {
     this.walletsIDs$ = this.walletService.walletsIDs$;
-    this.currentWalletIndex = this.walletService.currentWalletIndex;
+    this.currentWalletIndex$ = this.walletService.currentWalletIndex$;
     this.currentBalance$ = this.walletService.currentBalance$;
   }
 
@@ -31,7 +32,10 @@ export class AppComponent implements OnInit {
   }
 
   connectToWallet(): void {
-    this.walletService.connectWallet().subscribe();
+    this.walletService
+      .connectWallet()
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe();
   }
 
   private getBalances() {
@@ -41,15 +45,23 @@ export class AppComponent implements OnInit {
 
   private getSelectedWalletAddress(): string {
     return this.walletService.getSelectedWalletAddress(
-      this.walletService.currentWalletIndex
+      this.walletService.currentWalletIndex$.value
     );
   }
 
   checkWalletConnected(): void {
-    this.walletService.checkWalletConnected().subscribe({
-      next: () => {
-        this.getBalances();
-      },
-    });
+    this.walletService
+      .checkWalletConnected()
+      .pipe(takeUntil(this.componentDestroyed$))
+      .subscribe({
+        next: () => {
+          this.getBalances();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.componentDestroyed$.next();
+    this.componentDestroyed$.complete();
   }
 }

@@ -23,7 +23,7 @@ export class WalletService {
   provider: ethers.providers.Web3Provider | undefined;
 
   walletsIDs$ = new BehaviorSubject<string[]>([]);
-  currentWalletIndex: number;
+  currentWalletIndex$ = new BehaviorSubject(0);
   currentBalance$ = new BehaviorSubject<IBalance | undefined>(undefined);
 
   constructor(public snackBar: MatSnackBar) {
@@ -41,7 +41,7 @@ export class WalletService {
     } else {
       this.provider = new ethers.providers.Web3Provider(this.ethereum);
     }
-    this.currentWalletIndex = this.loadCurrentAccount();
+    this.loadCurrentAccount();
   }
 
   async getBalances(address: any): Promise<IBalance> {
@@ -70,6 +70,19 @@ export class WalletService {
   }
 
   connectWallet(): Observable<string[]> {
+    if (!this.ethereum) {
+      this.snackBar.open(
+        'Metamask not found. Please install Metamask.',
+        'Close',
+        {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        }
+      );
+      console.error('Metamask not found. Please install Metamask.');
+      return of([]);
+    }
+
     const requestAccounts$ = from(
       this.ethereum.request({ method: 'eth_requestAccounts' })
     );
@@ -77,7 +90,7 @@ export class WalletService {
     return requestAccounts$.pipe(
       switchMap((accounts: any) => {
         this.walletsIDs$.next(accounts);
-        this.getBalances(accounts[this.currentWalletIndex]);
+        this.getBalances(accounts[this.currentWalletIndex$.value]);
         return of(accounts);
       }),
       catchError((error: any) => this.handleError(error))
@@ -144,12 +157,14 @@ export class WalletService {
   }
 
   setCurrentWalletIndex(index: number): void {
-    this.currentWalletIndex = index;
+    this.currentWalletIndex$.next(index);
     localStorage.setItem('currentAccount', `${index}`);
   }
 
-  private loadCurrentAccount(): number {
+  private loadCurrentAccount(): void {
     const account = localStorage.getItem('currentAccount');
-    return account !== null && account !== undefined ? +account : 0;
+    account !== null && account !== undefined
+      ? this.currentWalletIndex$.next(+account)
+      : this.currentWalletIndex$.next(0);
   }
 }
