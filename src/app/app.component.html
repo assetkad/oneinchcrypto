@@ -1,8 +1,8 @@
 <div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r">
-  <app-select-account 
+  <!-- <app-select-account 
     *ngIf="walletsIDs$ | async as walletsIDs" 
     [options]="walletsIDs" 
-    [selectedValue]="(currentWalletIndex$ | async) || 0" 
+    [selectedValue]="(currentAccount$ | async) || 0" 
     (onSelectionChange)="onAccountChange($event)">
   </app-select-account>
 
@@ -16,7 +16,7 @@
   </div>
 
   <app-wallet 
-    [currentAccount]="(currentWalletIndex$ | async) || 0" 
+    [currentAccount]="(currentAccount$ | async) || 0" 
     [walletsIDs]="(walletsIDs$ | async) || []">
   </app-wallet>
 
@@ -28,5 +28,5 @@
     </div>
   </ng-container>
 
-  
+   -->
 </div>
