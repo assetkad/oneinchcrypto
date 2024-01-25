@@ -12,11 +12,6 @@ export const ABI = [
         type: 'address',
       },
       {
-        internalType: 'contract ISHEESHAGlobals',
-        name: '_sheeshaGlobals',
-        type: 'address',
-      },
-      {
         internalType: 'address',
         name: '_devAddress',
         type: 'address',
@@ -175,29 +170,9 @@ export const ABI = [
   },
   {
     inputs: [],
-    name: 'SHEESHAxWETHPair',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
     name: 'addLiquidity',
     outputs: [],
     stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'addLiquidityToUniswapSHEESHAxWETHPair',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -578,19 +553,6 @@ export const ABI = [
     outputs: [
       {
         internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'sheeshaGlobals',
-    outputs: [
-      {
-        internalType: 'contract ISHEESHAGlobals',
         name: '',
         type: 'address',
       },
