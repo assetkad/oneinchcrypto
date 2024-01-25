@@ -6,6 +6,5 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrl: './wallet.component.scss',
 })
 export class WalletComponent {
-  @Input() walletsIDs!: string[];
-  @Input() currentAccount!: number;
+  @Input() currentAccount!: string;
 }

@@ -1,4 +1,3 @@
-<div *ngIf="balances">
-  <div class="text-lg text-white">ETH Balance: {{ balances.ethBalance }}</div>
-  <div class="text-lg text-white">WETH Balance: {{ balances.wethBalance }}</div>
+<div *ngIf="balance">
+  <div class="text-lg text-white">ETH/WETH Balance: {{ +balance }}</div>
 </div>

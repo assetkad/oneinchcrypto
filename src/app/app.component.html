@@ -1,14 +1,7 @@
 <div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r">
-  <!-- <app-select-account 
-    *ngIf="walletsIDs$ | async as walletsIDs" 
-    [options]="walletsIDs" 
-    [selectedValue]="(currentAccount$ | async) || 0" 
-    (onSelectionChange)="onAccountChange($event)">
-  </app-select-account>
-
   <app-balance-display 
     *ngIf="currentBalance$ | async as currentBalance" 
-    [balances]="currentBalance">
+    [balance]="currentBalance">
   </app-balance-display>
 
   <div class="mt-1 text-4xl sm:text-7xl font-extrabold 	tracking-wide leading-tight text-center text-white">
@@ -16,17 +9,15 @@
   </div>
 
   <app-wallet 
-    [currentAccount]="(currentAccount$ | async) || 0" 
-    [walletsIDs]="(walletsIDs$ | async) || []">
+    *ngIf="(currentAccount$ | async) as currentAccount"
+    [currentAccount]="currentAccount">
   </app-wallet>
 
-  <ng-container *ngIf="!(walletsIDs$ | async)?.length">
+  <ng-container *ngIf="!(currentAccount$ | async)">
     <div class="flex flex-col p-3">
       <button class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()">
         Connect your wallet
       </button>
     </div>
   </ng-container>
-
-   -->
 </div>

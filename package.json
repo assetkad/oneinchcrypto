@@ -20,14 +20,10 @@
     "@angular/platform-browser": "^17.0.0",
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
-    "@walletconnect/web3-provider": "^1.8.0",
     "ethers": "^5.7.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "util": "^0.12.5",
     "web3": "^4.4.0",
-    "web3-core": "^4.3.2",
-    "web3modal": "^1.9.12",
     "zone.js": "~0.14.2"
   },
   "devDependencies": {

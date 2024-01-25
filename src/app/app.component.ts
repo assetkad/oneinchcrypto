@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, takeUntil } from 'rxjs';
-import { IBalance } from './entities/IBalance';
+import { Component } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 import { ProviderService } from './services/provider.service';
 
 @Component({
@@ -9,50 +8,52 @@ import { ProviderService } from './services/provider.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  // title = '1inch crypto';
-  // private componentDestroyed$: Subject<void> = new Subject<void>();
-  // walletsIDs$!: Observable<string[]>;
-  // currentAccount$!: Observable<number>;
-  // currentBalance$!: Observable<IBalance | undefined>;
-  // constructor(public providerService: ProviderService) {
-  //   this.walletsIDs$ = this.providerService.walletsIDs$;
-  //   this.currentAccount$ = this.providerService.currentAccount$;
-  //   this.currentBalance$ = this.providerService.currentBalance$;
+  title = '1inch crypto';
+
+  private componentDestroyed$: Subject<void> = new Subject<void>();
+
+  currentAccount$!: Observable<string>;
+  currentBalance$!: Observable<string | undefined>;
+
+  constructor(public providerService: ProviderService) {
+    this.currentAccount$ = this.providerService.currentAccount$;
+    this.currentBalance$ = this.providerService.currentBalance$;
+  }
+
+  async ngOnInit() {
+    // await this.transferTokens();
+  }
+
+  connectToWallet() {
+    this.providerService.connectWallet();
+  }
+
+  // Не получилось, не хватило времени разобраться
+  // async transferTokens() {
+  //   try {
+  //     const senderAddress = this.providerService.currentAccount$.value;
+  //     const recipientAddress = '0x0616E9455bD5d5D27C3DfF2713a9A2E045B68121';
+  //     const tokenContractAddress = '0x7daf26D64a62e2e1dB838C84bCAc5bdDb3b5D926';
+  //     const amountToSend = 0.2;
+
+  //     const transactionHash = await this.providerService.transferTokens(
+  //       amountToSend,
+  //       recipientAddress,
+  //       tokenContractAddress
+  //     );
+
+  //     if (transactionHash) {
+  //       console.log('Transaction Hash:', transactionHash);
+  //     } else {
+  //       console.error('Transaction failed');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error during token transfer:', error);
+  //   }
   // }
-  // ngOnInit() {
-  //   this.checkWalletConnected();
-  // }
-  // onAccountChange(selectedValue: number): void {
-  //   this.providerService.setCurrentWalletIndex(selectedValue);
-  //   this.getBalances();
-  // }
-  // connectToWallet(): void {
-  //   this.providerService
-  //     .connectWallet()
-  //     .pipe(takeUntil(this.componentDestroyed$))
-  //     .subscribe();
-  // }
-  // private getBalances() {
-  //   const selectedWalletAddress = this.getSelectedWalletAddress();
-  //   this.providerService.getBalances(selectedWalletAddress);
-  // }
-  // private getSelectedWalletAddress(): string {
-  //   return this.providerService.getSelectedWalletAddress(
-  //     this.providerService.currentAccount$.value
-  //   );
-  // }
-  // checkWalletConnected(): void {
-  //   this.providerService
-  //     .checkWalletConnected()
-  //     .pipe(takeUntil(this.componentDestroyed$))
-  //     .subscribe({
-  //       next: () => {
-  //         this.getBalances();
-  //       },
-  //     });
-  // }
-  // ngOnDestroy() {
-  //   this.componentDestroyed$.next();
-  //   this.componentDestroyed$.complete();
-  // }
+
+  ngOnDestroy() {
+    this.componentDestroyed$.next();
+    this.componentDestroyed$.complete();
+  }
 }

@@ -6,8 +6,5 @@ import { Component, Input, SimpleChanges } from '@angular/core';
   styleUrl: './balance-display.component.scss',
 })
 export class BalanceDisplayComponent {
-  @Input() balances!: {
-    ethBalance: string;
-    wethBalance: string;
-  };
+  @Input() balance!: string;
 }
