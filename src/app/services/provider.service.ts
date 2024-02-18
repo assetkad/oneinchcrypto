@@ -1,18 +1,18 @@
 import { BehaviorSubject, ReplaySubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { Contract, ethers, utils } from 'ethers';
+import { ethers } from 'ethers';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import Web3 from 'web3';
 import { NetworkId } from '../core/network-ids';
 import { ProviderId, ProviderUrl } from '../core/provider-url';
 import { StorageService, Web3ModalConnections } from './storage.service';
-import { ABI } from '../core/config/abi/abi';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProviderService {
   ethersWeb3?: ethers.providers.Web3Provider;
+  signer?: ethers.providers.JsonRpcSigner;
 
   enabledChains: NetworkId[] = [
     NetworkId.eth,
@@ -30,8 +30,6 @@ export class ProviderService {
       ProviderUrl.sepolia
     ),
   };
-
-  signer?: ethers.providers.JsonRpcSigner;
 
   currentAccount$ = new BehaviorSubject('');
   currentNetwork$ = new BehaviorSubject<number | undefined>(NetworkId.eth);
@@ -149,44 +147,44 @@ export class ProviderService {
   }
 
   async transferTokens(
-    amount: number,
-    recipientAddress: string,
-    tokenContractAddress: string
-  ): Promise<string | undefined> {
-    try {
-      if (!this.ethersWeb3 || !this.signer) {
-        console.error('Web3 or signer not available');
-        return;
-      }
-
-      const abi = ABI;
-      const tokenContract = new Contract(
-        tokenContractAddress,
-        abi,
-        this.signer
-      );
-
-      const transaction = await tokenContract['transfer'](
-        recipientAddress,
-        utils.parseUnits(amount.toString(), 'wei')
-      );
-
-      console.log(transaction);
-
-      const receipt = await transaction.wait();
-
-      console.log(receipt);
-
-      if (receipt.status === 1) {
-        console.log('Transaction successful');
-        return receipt.transactionHash;
-      } else {
-        console.error('Transaction failed');
-        return;
-      }
-    } catch (error) {
-      console.error('Error during token transfer:', error);
+    amount: string,
+    recipientAddress: string
+  ): Promise<string | void> {
+    if (!this.signer) {
+      console.error('No signer available');
       return;
+    }
+    try {
+      const transactionResponse = await this.signer.sendTransaction({
+        to: recipientAddress,
+        value: ethers.utils.parseEther(`${amount}`),
+        from: this.currentAccount$.value,
+        gasLimit: 35000,
+      });
+
+      const transactionReceipt = await transactionResponse.wait();
+      console.log(transactionReceipt.transactionHash);
+      this.transactionSuccess();
+      const balance = await this.signer.getBalance();
+      this.currentBalance$.next(ethers.utils.formatEther(balance));
+      return transactionReceipt.transactionHash;
+    } catch (error: any) {
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        console.log('not enough funds to pay for gas fees');
+      }
+
+      if (error.code === 'NETWORK_ERROR') {
+        console.log(
+          "could not validate transaction, check that you're on the right network"
+        );
+      }
+
+      if (error.code === 'TRANSACTION_REPLACED') {
+        console.log(
+          'the transaction was replaced by another transaction with the same nonce'
+        );
+      }
+      throw error;
     }
   }
 
@@ -242,6 +240,12 @@ export class ProviderService {
         panelClass: ['error-snackbar'],
       }
     );
-    console.error('Metamask not found. Please install Metamask.');
+  }
+
+  transactionSuccess(): void {
+    this.snackBar.open('The transaction was successful', 'Close', {
+      duration: 5000,
+      panelClass: ['notif-success'],
+    });
   }
 }

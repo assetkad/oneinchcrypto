@@ -3,8 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { FormsModule } from '@angular/forms';
 import { SharedModule } from './shared/shared.module';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { ProviderService } from './services/provider.service';
 import { AbiProvider } from './core/config/abi/abiInjector';
@@ -28,6 +28,7 @@ export function initializeApp(provider: ProviderService) {
     BrowserAnimationsModule,
     FormsModule,
     SharedModule,
+    ReactiveFormsModule,
     AppRoutingModule,
   ],
   providers: [

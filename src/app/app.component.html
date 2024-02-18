@@ -1,10 +1,10 @@
-<div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r">
+<div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r text-white">
   <app-balance-display 
     *ngIf="currentBalance$ | async as currentBalance" 
     [balance]="currentBalance">
   </app-balance-display>
 
-  <div class="mt-1 text-4xl sm:text-7xl font-extrabold 	tracking-wide leading-tight text-center text-white">
+  <div class="mt-1 text-4xl sm:text-7xl font-extrabold 	tracking-wide leading-tight text-center">
     Just another DApp
   </div>
 
@@ -15,9 +15,27 @@
 
   <ng-container *ngIf="!(currentAccount$ | async)">
     <div class="flex flex-col p-3">
-      <button class="bg-orange-500 text-white font-bold py-2 px-4 rounded" (click)="connectToWallet()">
+      <button class="bg-orange-500 font-bold py-2 px-4 rounded" (click)="connectToWallet()">
         Connect your wallet
       </button>
     </div>
   </ng-container>
+
+  <form [formGroup]="sendTokensForm" class="flex flex-col items-center" *ngIf="(currentAccount$ | async)" (submit)="sendTokens()">
+    <label for="recipient-address" class="font-normal mb-1">Recipient address:</label>
+    <input class="p-2 mb-2 border text-black border-gray-300 rounded w-full" type="text" id="recipient-address" formControlName="recipientAddress">
+    
+    <label for="amount" class="font-normal mb-1">Tokens amount:</label>
+    <input class="p-2 mb-2 border text-black border-gray-300 rounded w-full" type="number" id="amount" formControlName="amount">
+    
+    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer transition duration-300 ease-in-out hover:bg-blue-600"
+      [disabled]="sendTokensForm.invalid">
+        Send Tokens
+    </button>
+  </form>  
+
+  <div *ngIf="transactionHash" class="mt-1 text-1xl font-normal text-center">
+    Transaction Hash: <br>
+    {{transactionHash}}
+  </div>
 </div>
